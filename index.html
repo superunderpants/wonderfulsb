@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>国家精神卫生在线分诊平台</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --blue: #1a5c8a;
+    --blue-dark: #0f3c5c;
+    --blue-light: #e8f0f6;
+    --red: #c62828;
+    --red-light: #fce4e4;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --text-secondary: #666;
+    --text-muted: #999;
+    --border: #e0e0e0;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --radius: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 414px;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Page containers */
+  .page {
+    display: none;
+    min-height: 100vh;
+    padding: 20px 16px;
+  }
+  .page.active { display: flex; flex-direction: column; }
+
+  /* Header bar */
+  .header {
+    text-align: center;
+    padding: 24px 0 8px;
+    border-bottom: 2px solid var(--blue);
+    margin-bottom: 20px;
+  }
+  .header .hospital-icon { font-size: 32px; }
+  .header .title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--blue);
+    letter-spacing: 1px;
+  }
+  .header .subtitle {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 4px;
+  }
+
+  /* Notice banner */
+  .notice {
+    background: var(--blue-light);
+    border-left: 3px solid var(--blue);
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--blue-dark);
+    line-height: 1.6;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin-bottom: 20px;
+  }
+
+  /* Marquee */
+  .marquee {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .marquee span {
+    display: inline-block;
+    animation: marquee 20s linear infinite;
+    padding-left: 100%;
+  }
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+  }
+
+  /* Buttons */
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.1s;
+    -webkit-appearance: none;
+  }
+  .btn:active { transform: scale(0.98); opacity: 0.85; }
+
+  .btn-primary {
+    background: var(--blue);
+    color: #fff;
+    margin-bottom: 10px;
+  }
+  .btn-outline {
+    background: #fff;
+    color: var(--blue);
+    border: 2px solid var(--blue);
+  }
+  .btn-red {
+    background: var(--red);
+    color: #fff;
+  }
+  .btn-small {
+    display: inline-block;
+    width: auto;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  /* Home page */
+  .home-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    justify-content: center;
+  }
+  .entry-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px 16px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .entry-card:active { border-color: var(--blue); }
+  .entry-card .entry-icon { font-size: 28px; margin-bottom: 8px; }
+  .entry-card .entry-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .entry-card .entry-desc { font-size: 13px; color: var(--text-secondary); }
+
+  /* Name input */
+  .input-group { margin-bottom: 16px; }
+  .input-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .input-group input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .input-group input:focus { border-color: var(--blue); }
+
+  /* Quiz */
+  .quiz-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .quiz-progress .bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .quiz-progress .bar-fill {
+    height: 100%;
+    background: var(--blue);
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .quiz-progress .bar-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .quiz-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .quiz-number {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .quiz-question {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+  .quiz-option {
+    background: #f9fafb;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-size: 15px;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .quiz-option:active {
+    border-color: var(--blue);
+    background: var(--blue-light);
+  }
+
+  /* Loading */
+  .loading-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--border);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-steps { font-size: 14px; color: var(--text-secondary); }
+  .loading-steps li {
+    list-style: none;
+    padding: 6px 0;
+    opacity: 0;
+    animation: fadeInStep 0.4s forwards;
+  }
+  .loading-steps li:nth-child(1) { animation-delay: 0.2s; }
+  .loading-steps li:nth-child(2) { animation-delay: 0.8s; }
+  .loading-steps li:nth-child(3) { animation-delay: 1.4s; }
+  @keyframes fadeInStep {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Result */
+  .result-report {
+    background: var(--card);
+    border: 2px solid #1a1a1a;
+    border-radius: 0;
+    padding: 24px 20px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .report-stamp {
+    position: absolute;
+    top: 60px;
+    right: 30px;
+    width: 80px;
+    height: 80px;
+    border: 3px solid rgba(198, 40, 40, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(198, 40, 40, 0.4);
+    font-size: 16px;
+    font-weight: 900;
+    transform: rotate(-15deg);
+    pointer-events: none;
+    letter-spacing: 2px;
+  }
+  .report-header {
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .report-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.8;
+  }
+  .report-meta .meta-label { color: var(--text-secondary); font-size: 12px; }
+  .diagnosis-box {
+    background: #fafafa;
+    border: 1px solid #ccc;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .diagnosis-box .diag-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+  }
+  .diagnosis-box .diag-name {
+    font-size: 26px;
+    font-weight: 900;
+    color: #1a1a1a;
+    letter-spacing: 2px;
+  }
+  .severity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .severity-bar {
+    display: flex;
+    gap: 3px;
+  }
+  .severity-bar .block {
+    width: 16px;
+    height: 8px;
+    background: #ccc;
+    border-radius: 1px;
+  }
+  .severity-bar .block.filled { background: var(--red); }
+
+  .icd-code {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+
+  .doctor-note-section { margin-bottom: 20px; }
+  .doctor-note-section .note-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+  .note-options { display: flex; flex-direction: column; gap: 6px; }
+  .note-option {
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .note-option.selected {
+    border-color: var(--blue);
+    background: var(--blue-light);
+    color: var(--blue-dark);
+  }
+
+  .result-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Landing page */
+  .landing-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .landing-card .warn-icon { font-size: 48px; margin-bottom: 16px; }
+  .landing-card .landing-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--blue-dark);
+  }
+  .landing-card .landing-info {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+  .stress-check {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .stress-option {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .stress-option:hover, .stress-option.selected {
+    border-color: var(--blue);
+    background: var(--blue-light);
+  }
+
+  .footer { text-align: center; padding: 24px 16px; font-size: 11px; color: var(--text-muted); }
+
+  /* Share overlay */
+  .share-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px;
+  }
+  .share-overlay.show { display: flex; }
+  .share-overlay img {
+    max-width: 90vw;
+    max-height: 70vh;
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  }
+  .share-overlay .close-btn {
+    color: #fff;
+    font-size: 14px;
+    padding: 10px 30px;
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 20px;
+    cursor: pointer;
+    background: transparent;
+  }
+  .share-overlay .tip {
+    color: rgba(255,255,255,0.7);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  /* Utility */
+  .text-center { text-align: center; }
+  .mt-20 { margin-top: 20px; }
+  .mb-20 { margin-bottom: 20px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- PAGE: Home -->
+  <div id="page-home" class="page active">
+    <div class="header">
+      <div class="hospital-icon">🏥</div>
+      <div class="title">国家精神卫生在线分诊平台</div>
+      <div class="subtitle">National Mental Health Online Triage System</div>
+    </div>
+
+    <div class="notice">
+      ⚠ 重要提示：本系统已接入全国精神卫生信息网络。根据《个人信息保护法》第二十八条，您的分诊结果仅用于临床参考，不具有法律效力。
+    </div>
+
+    <div class="marquee">
+      <span>📢 今日在线分诊 183,294 人次 · 原发性傻逼科挂号量位列第一 · 请合理选择就诊时间……</span>
+    </div>
+
+    <div class="home-entries">
+      <div class="entry-card" onclick="startFriendMode()">
+        <div class="entry-icon">📋</div>
+        <div class="entry-title">替朋友挂号</div>
+        <div class="entry-desc">你觉得你朋友有病？替TA做一份精神科分诊评估，生成官方诊断报告。</div>
+      </div>
+      <div class="entry-card" onclick="startSelfMode()">
+        <div class="entry-icon">🪞</div>
+        <div class="entry-title">先给自己挂一个</div>
+        <div class="entry-desc">不确定先诊断谁？从你自己开始。一份不计入档案的自诊报告。</div>
+      </div>
+    </div>
+
+    <div class="footer">国家精神卫生在线分诊中心 · NH-2026</div>
+  </div>
+
+  <!-- PAGE: Name Input -->
+  <div id="page-name-input" class="page">
+    <div class="header">
+      <div class="hospital-icon">🏥</div>
+      <div class="title" id="name-input-title">初诊登记</div>
+    </div>
+
+    <div class="quiz-card">
+      <div id="self-name-group" class="input-group">
+        <label>你的姓名（初诊医师）</label>
+        <input type="text" id="input-doctor-name" placeholder="请输入你的名字" maxlength="20">
+      </div>
+      <div id="patient-name-group" class="input-group">
+        <label id="patient-label">患者姓名</label>
+        <input type="text" id="input-patient-name" placeholder="请输入患者的名字" maxlength="20">
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="startQuiz()">开始分诊评估</button>
+    <button class="btn btn-outline" onclick="goHome()">返回首页</button>
+    <div class="footer">请如实填写，虚假信息将影响分诊准确性</div>
+  </div>
+
+  <!-- PAGE: Quiz -->
+  <div id="page-quiz" class="page">
+    <div class="quiz-progress">
+      <div class="bar-wrap"><div class="bar-fill" id="quiz-progress-bar" style="width:0%"></div></div>
+      <div class="bar-text" id="quiz-progress-text">1/10</div>
+    </div>
+    <div class="quiz-card">
+      <div class="quiz-number" id="quiz-number">第 1 题</div>
+      <div class="quiz-question" id="quiz-question"></div>
+      <div class="quiz-options" id="quiz-options"></div>
+    </div>
+    <div class="footer">SCL-90 症状自评量表（精简版）· 请如实作答</div>
+  </div>
+
+  <!-- PAGE: Loading -->
+  <div id="page-loading" class="page">
+    <div class="header">
+      <div class="hospital-icon">🏥</div>
+      <div class="title">正在生成分诊报告</div>
+    </div>
+    <div class="loading-wrap">
+      <div class="loading-spinner"></div>
+      <ul class="loading-steps" id="loading-steps">
+        <li>✓ 正在调取精神档案……</li>
+        <li>⏳ AI 辅助阅片中……</li>
+        <li>⏳ 专家复核中……</li>
+      </ul>
+    </div>
+    <div class="footer">请勿离开本页面，系统正在全力运算中</div>
+  </div>
+
+  <!-- PAGE: Result -->
+  <div id="page-result" class="page">
+    <div class="header">
+      <div class="hospital-icon">🏥</div>
+      <div class="title">国家精神卫生在线分诊平台</div>
+      <div class="subtitle">National Mental Health Online Triage System</div>
+    </div>
+    <div class="result-report">
+      <div class="report-stamp">分诊专用</div>
+      <div class="report-header">门 诊 分 诊 报 告</div>
+      <div class="report-meta" id="report-meta"></div>
+      <div class="diagnosis-box">
+        <div class="diag-label">诊 断 结 果</div>
+        <div class="diag-name" id="result-diagnosis"></div>
+        <div class="severity">
+          严重程度：
+          <div class="severity-bar" id="severity-bar"></div>
+          <span id="severity-label"></span>
+        </div>
+      </div>
+      <div class="icd-code" id="result-icd"></div>
+      <div class="doctor-note-section">
+        <div class="note-title">初诊医师补充意见</div>
+        <div class="note-options" id="note-options"></div>
+      </div>
+    </div>
+    <div class="result-actions mt-20">
+      <button class="btn btn-red" onclick="generateShareImage()">📸 生成分享图 · 长按保存</button>
+      <button class="btn btn-outline" onclick="counterAttack()">🔄 反击！替TA也挂一个号</button>
+      <button class="btn btn-outline" onclick="startFriendMode()">给下一个朋友挂号</button>
+      <button class="btn btn-outline" onclick="startSelfMode()">我也要测我自己</button>
+      <button class="btn btn-small btn-outline" onclick="goHome()" style="margin-top:8px">返回首页</button>
+    </div>
+  </div>
+
+  <!-- Share overlay -->
+  <div class="share-overlay" id="share-overlay" onclick="closeShareOverlay(event)">
+    <img id="share-image" src="" alt="分享图" />
+    <div class="tip">长按图片保存到相册，发给朋友或发朋友圈</div>
+    <button class="close-btn" onclick="document.getElementById('share-overlay').classList.remove('show')">关闭</button>
+  </div>
+  <canvas id="share-canvas" style="display:none"></canvas>
+
+  <!-- PAGE: Landing (shared link) -->
+  <div id="page-landing" class="page">
+    <div class="header">
+      <div class="hospital-icon">🏥</div>
+      <div class="title">精神卫生中心</div>
+    </div>
+    <div class="landing-card">
+      <div class="warn-icon">⚠</div>
+      <div class="landing-title">您有一份待查看的分诊报告</div>
+      <div class="landing-info" id="landing-info"></div>
+      <div class="stress-check">
+        <div class="stress-option" onclick="viewLandingReport()">○ 能，让暴风雨来得更猛烈些</div>
+        <div class="stress-option" onclick="viewLandingReport()">○ 不能，但我还是想看</div>
+      </div>
+    </div>
+    <div class="footer">根据精神卫生伦理委员会规定，患者有权查看本人分诊报告</div>
+  </div>
+
+</div>
+
+<script>
+// ==================== GLOBAL STATE ====================
+const STATE = {
+  mode: null,             // 'friend' | 'self'
+  doctorName: '',
+  patientName: '',
+  questions: [],
+  answers: [],           // [{questionId, optionIndex, code, weight}]
+  resultCode: '',
+  resultName: '',
+  severity: 1,
+  doctorNote: null,      // index of selected note
+};
+
+// Diagnosis mapping
+const DIAGNOSIS_MAP = {
+  'SB-404': '原发性傻逼',
+  'IMSB-99': '晚期自我认知型傻逼',
+  'DUMB-01': '先天性智力欠费',
+  'PSYCHO-6': '阵发性精神病',
+  'WTF-404': '意义崩解型废物',
+  'TRASH-7': '可回收型垃圾',
+  'DEAD-13': '临床死亡型存活',
+  'LMAO-0': '解离型假笑障碍',
+  'GUN-88': '原发性滚',
+  'JOKE-1': '经典型笑话',
+  'BROKE-24': '冲动型财政废物',
+  'CRINGE-3': '继发性社死',
+  'LONER-77': '原发性孤寡',
+  'COPEFUL-0': '进行性精神破产',
+  'TROLL-99': '确诊型杠精',
+  'CLEAN-00': '暂时正常（疑似伪装）',
+};
+
+const DOCTOR_NOTES = [
+  '我早就想说了，诊断书替我说了。',
+  '你看看，不是只有我一个人这么觉得吧。',
+  '建议按处方服药，尤其第一条。',
+  '别打我，报告是系统出的，我只是如实填了症状。',
+];
+
+// ==================== NAVIGATION ====================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function goHome() { showPage('page-home'); }
+
+// ==================== MODE SELECTION ====================
+function startFriendMode() {
+  STATE.mode = 'friend';
+  document.getElementById('name-input-title').textContent = '替友挂号 · 初诊登记';
+  document.getElementById('patient-label').textContent = '患者姓名（你要诊断谁？）';
+  document.getElementById('patient-name-group').style.display = 'block';
+  document.getElementById('self-name-group').querySelector('label').textContent = '你的姓名（初诊医师）';
+  document.getElementById('input-doctor-name').value = '';
+  document.getElementById('input-patient-name').value = '';
+  showPage('page-name-input');
+}
+
+function startSelfMode() {
+  STATE.mode = 'self';
+  document.getElementById('name-input-title').textContent = '自诊登记';
+  document.getElementById('patient-name-group').style.display = 'none';
+  document.getElementById('self-name-group').querySelector('label').textContent = '你的姓名';
+  document.getElementById('input-doctor-name').value = '';
+  showPage('page-name-input');
+}
+
+// ==================== QUIZ ====================
+async function startQuiz() {
+  const doctorName = document.getElementById('input-doctor-name').value.trim();
+  const patientName = STATE.mode === 'friend'
+    ? document.getElementById('input-patient-name').value.trim()
+    : doctorName;
+
+  if (!doctorName) { alert('请输入姓名'); return; }
+  if (STATE.mode === 'friend' && !patientName) { alert('请输入患者姓名'); return; }
+
+  STATE.doctorName = doctorName;
+  STATE.patientName = patientName;
+  STATE.answers = [];
+
+  // Load questions
+  if (STATE.questions.length === 0) {
+    try {
+      const res = await fetch('questions-fixed.json');
+      STATE.questions = await res.json();
+    } catch (e) {
+      alert('题库加载失败，请刷新重试');
+      return;
+    }
+  }
+
+  // Select 10 random questions (seeded by patient name for consistency)
+  const seed = hashStr(patientName + doctorName);
+  STATE.selectedQuestions = seededSample(STATE.questions, 10, seed);
+  STATE.currentQuestionIndex = 0;
+
+  showPage('page-quiz');
+  renderQuestion();
+}
+
+// Simple string hash
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
+}
+
+// Seeded random
+function seededRandom(seed) {
+  let s = seed;
+  return function() {
+    s = (s * 1664525 + 1013904223) | 0;
+    return (s >>> 0) / 4294967296;
+  };
+}
+
+// Seeded sample
+function seededSample(arr, n, seed) {
+  const rng = seededRandom(seed);
+  const shuffled = [...arr];
+  // Fisher-Yates with seeded random
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, n);
+}
+
+function renderQuestion() {
+  const idx = STATE.currentQuestionIndex;
+  const q = STATE.selectedQuestions[idx];
+  const total = STATE.selectedQuestions.length;
+
+  // Progress
+  document.getElementById('quiz-progress-bar').style.width = `${(idx / total) * 100}%`;
+  document.getElementById('quiz-progress-text').textContent = `${idx + 1}/${total}`;
+
+  // Question number
+  if (q.question === null) {
+    document.getElementById('quiz-number').textContent = '此题无编号';
+    document.getElementById('quiz-question').textContent = '这道题没有题目，请盲选。';
+  } else {
+    document.getElementById('quiz-number').textContent = `第 ${idx + 1} 题`;
+    // Replace "你朋友" with "你" in self mode
+    let questionText = q.question;
+    if (STATE.mode === 'self') {
+      questionText = questionText.replace(/你朋友/g, '你');
+    }
+    document.getElementById('quiz-question').textContent = questionText;
+  }
+
+  // Options
+  const optsContainer = document.getElementById('quiz-options');
+  optsContainer.innerHTML = '';
+  q.options.forEach((opt, optIdx) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-option';
+    div.textContent = `${'ABCD'[optIdx]}. ${opt.text}`;
+    div.addEventListener('click', () => selectOption(opt, optIdx));
+    optsContainer.appendChild(div);
+  });
+}
+
+function selectOption(opt, optIdx) {
+  STATE.answers.push({
+    questionId: STATE.selectedQuestions[STATE.currentQuestionIndex].id,
+    optionIndex: optIdx,
+    code: opt.code,
+    weight: opt.weight,
+  });
+
+  STATE.currentQuestionIndex++;
+
+  if (STATE.currentQuestionIndex >= STATE.selectedQuestions.length) {
+    showLoading();
+  } else {
+    renderQuestion();
+  }
+}
+
+// ==================== LOADING & RESULT ====================
+function showLoading() {
+  showPage('page-loading');
+  // Reset loading steps
+  const steps = document.querySelectorAll('#loading-steps li');
+  steps.forEach(s => s.style.opacity = '0');
+  // Trigger reflow for animation restart
+  void document.getElementById('loading-steps').offsetWidth;
+  steps.forEach(s => s.style.opacity = '');
+
+  setTimeout(showResult, 2500);
+}
+
+function showResult() {
+  // Calculate diagnosis
+  const scores = {};
+  STATE.answers.forEach(a => {
+    scores[a.code] = (scores[a.code] || 0) + a.weight;
+  });
+
+  let maxCode = null, maxScore = 0;
+  const codes = Object.keys(scores);
+  for (const code of codes) {
+    if (scores[code] > maxScore) {
+      maxScore = scores[code];
+      maxCode = code;
+    }
+  }
+
+  // Tie-break: random among top scorers
+  const topCodes = codes.filter(c => scores[c] === maxScore);
+  const finalCode = topCodes[Math.floor(Math.random() * topCodes.length)];
+
+  STATE.resultCode = finalCode;
+  STATE.resultName = DIAGNOSIS_MAP[finalCode];
+  STATE.severity = Math.min(5, Math.max(1, Math.ceil(maxScore / 50 * 5)));
+
+  renderResult();
+  showPage('page-result');
+}
+
+function renderResult() {
+  // Meta
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+  const reportNo = `NO.${dateStr.replace(/\./g,'')}-${String(Math.floor(Math.random()*90000)+10000)}`;
+
+  const metaDiv = document.getElementById('report-meta');
+  if (STATE.mode === 'self') {
+    metaDiv.innerHTML = `
+      <div><span class="meta-label">患者</span><br>${escHtml(STATE.patientName)}</div>
+      <div><span class="meta-label">分诊类型</span><br>自诊报告</div>
+      <div><span class="meta-label">报告编号</span><br>${reportNo}</div>
+    `;
+  } else {
+    metaDiv.innerHTML = `
+      <div><span class="meta-label">患者</span><br>${escHtml(STATE.patientName)}</div>
+      <div><span class="meta-label">初诊医师</span><br>${escHtml(STATE.doctorName)}</div>
+      <div><span class="meta-label">报告编号</span><br>${reportNo}</div>
+    `;
+  }
+
+  // Diagnosis
+  document.getElementById('result-diagnosis').textContent = STATE.resultName;
+  document.getElementById('result-icd').textContent = `ICD-11：${STATE.resultCode}`;
+
+  // Severity bar
+  const sevBar = document.getElementById('severity-bar');
+  sevBar.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const block = document.createElement('div');
+    block.className = 'block' + (i <= STATE.severity ? ' filled' : '');
+    sevBar.appendChild(block);
+  }
+  document.getElementById('severity-label').textContent = `${STATE.severity}/5`;
+
+  // Doctor notes
+  const noteContainer = document.getElementById('note-options');
+  noteContainer.innerHTML = '';
+  DOCTOR_NOTES.forEach((note, i) => {
+    const div = document.createElement('div');
+    div.className = 'note-option' + (STATE.doctorNote === i ? ' selected' : '');
+    div.textContent = note;
+    div.addEventListener('click', () => {
+      STATE.doctorNote = i;
+      noteContainer.querySelectorAll('.note-option').forEach((n, j) => {
+        n.classList.toggle('selected', j === i);
+      });
+    });
+    noteContainer.appendChild(div);
+  });
+}
+
+// ==================== ACTIONS ====================
+function counterAttack() {
+  // Swap roles
+  const oldPatient = STATE.patientName;
+  const oldDoctor = STATE.doctorName;
+  STATE.mode = 'friend';
+  document.getElementById('input-doctor-name').value = oldPatient;
+  document.getElementById('input-patient-name').value = oldDoctor;
+  document.getElementById('name-input-title').textContent = '反击！替友挂号 · 初诊登记';
+  document.getElementById('patient-name-group').style.display = 'block';
+  document.getElementById('self-name-group').querySelector('label').textContent = '你的姓名（初诊医师）';
+  document.getElementById('patient-label').textContent = '患者姓名（你要诊断谁？）';
+  showPage('page-name-input');
+}
+
+// ==================== SHARE IMAGE ====================
+function generateShareImage() {
+  const canvas = document.getElementById('share-canvas');
+  const W = 375;
+  const P = 24;
+  const scale = 2;
+
+  // Calculate heights first
+  let y = P;
+  y += 50;  // header
+  y += 20;  // divider
+  y += 22;  // meta line 1
+  y += 30;  // meta line 2 + gap
+  const diagBoxY = y;
+  const diagBoxH = 140;
+  y += diagBoxH;
+  y += 20;
+  y += 28;  // ICD
+  if (STATE.doctorNote !== null) y += 28;  // doctor note
+  y += 36;  // footer lines
+  const qrSize = 80;
+  const qrY = y;
+  y += qrSize + 16;
+  y += P;
+
+  canvas.width = W * scale;
+  canvas.height = y * scale;
+  canvas.style.width = W + 'px';
+  canvas.style.height = y + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(scale, scale);
+
+  // Background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, y);
+
+  let cy = P;
+
+  // Header
+  ctx.fillStyle = '#1a5c8a';
+  ctx.font = 'bold 17px -apple-system, "PingFang SC", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🏥 国家精神卫生在线分诊平台', W / 2, cy + 20);
+  ctx.font = '10px -apple-system, "PingFang SC", sans-serif';
+  ctx.fillStyle = '#999';
+  ctx.fillText('NATIONAL MENTAL HEALTH ONLINE TRIAGE SYSTEM', W / 2, cy + 36);
+  cy += 50;
+
+  // Divider
+  ctx.strokeStyle = '#1a5c8a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(P, cy);
+  ctx.lineTo(W - P, cy);
+  ctx.stroke();
+  cy += 20;
+
+  // Meta
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+  ctx.fillStyle = '#333';
+  ctx.font = '14px -apple-system, "PingFang SC", sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(`患  者：${STATE.patientName}`, P, cy + 16);
+  ctx.textAlign = 'right';
+  if (STATE.mode === 'self') {
+    ctx.fillText('分诊类型：自诊报告', W - P, cy + 16);
+  } else {
+    ctx.fillText(`初诊医师：${STATE.doctorName}`, W - P, cy + 16);
+  }
+  cy += 30;
+
+  // Diagnosis box
+  ctx.fillStyle = '#fafafa';
+  ctx.fillRect(P, cy, W - P * 2, diagBoxH);
+  ctx.strokeStyle = '#ccc';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(P, cy, W - P * 2, diagBoxH);
+
+  ctx.fillStyle = '#999';
+  ctx.font = '12px -apple-system, "PingFang SC", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('诊  断  结  果', W / 2, cy + 24);
+
+  ctx.fillStyle = '#1a1a1a';
+  ctx.font = 'bold 28px -apple-system, "PingFang SC", sans-serif';
+  ctx.fillText(STATE.resultName, W / 2, cy + 64);
+
+  // Severity
+  const sevY = cy + 84;
+  ctx.fillStyle = '#666';
+  ctx.font = '12px -apple-system, "PingFang SC", sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('严重程度：', W / 2 - 70, sevY + 10);
+  for (let i = 0; i < 5; i++) {
+    ctx.fillStyle = i < STATE.severity ? '#c62828' : '#ccc';
+    ctx.fillRect(W / 2 - 30 + i * 22, sevY, 18, 10);
+  }
+  ctx.fillStyle = '#666';
+  ctx.fillText(`${STATE.severity}/5`, W / 2 + 95, sevY + 10);
+
+  cy += diagBoxH + 20;
+
+  // ICD
+  ctx.fillStyle = '#bbb';
+  ctx.font = '10px -apple-system, "PingFang SC", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`ICD-11：${STATE.resultCode}`, W / 2, cy);
+  cy += 28;
+
+  // Doctor note
+  if (STATE.doctorNote !== null) {
+    ctx.fillStyle = '#555';
+    ctx.font = '12px -apple-system, "PingFang SC", sans-serif';
+    ctx.fillText(`初诊医师补充：${DOCTOR_NOTES[STATE.doctorNote]}`, W / 2, cy);
+    cy += 28;
+  }
+
+  // Footer
+  ctx.fillStyle = '#999';
+  ctx.font = '10px -apple-system, "PingFang SC", sans-serif';
+  ctx.fillText('国家精神卫生在线分诊中心 · NH-2026', W / 2, cy + 12);
+  ctx.fillText('本报告仅供分诊参考，不具有临床诊断意义', W / 2, cy + 26);
+  cy += 40;
+
+  // QR code
+  ctx.fillStyle = '#666';
+  ctx.font = '10px -apple-system, "PingFang SC", sans-serif';
+  ctx.fillText('扫码测测你挂哪个科', W / 2, qrY - 8);
+
+  // Generate QR in DOM then draw onto canvas
+  const qrContainer = document.createElement('div');
+  qrContainer.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
+  document.body.appendChild(qrContainer);
+
+  const shareUrl = window.location.origin + window.location.pathname +
+    `?p=${encodeURIComponent(STATE.patientName)}&d=${encodeURIComponent(STATE.doctorName)}&c=${STATE.resultCode}`;
+
+  new QRCode(qrContainer, {
+    text: shareUrl,
+    width: qrSize * scale,
+    height: qrSize * scale,
+    colorDark: '#1a1a1a',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.L,
+  });
+
+  setTimeout(() => {
+    const qrImg = qrContainer.querySelector('img') || qrContainer.querySelector('canvas');
+    if (qrImg) {
+      ctx.drawImage(qrImg, W / 2 - qrSize / 2, qrY, qrSize, qrSize);
+    }
+    document.body.removeChild(qrContainer);
+
+    const dataUrl = canvas.toDataURL('image/png');
+    document.getElementById('share-image').src = dataUrl;
+    document.getElementById('share-overlay').classList.add('show');
+  }, 400);
+}
+
+function closeShareOverlay(event) {
+  if (event.target === event.currentTarget) {
+    document.getElementById('share-overlay').classList.remove('show');
+  }
+}
+
+// ==================== LANDING ====================
+function viewLandingReport() {
+  // For now, redirect to home since we don't have real share URLs yet
+  goHome();
+}
+
+// ==================== UTIL ====================
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// Check for landing page query params
+(function checkLanding() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('p') && params.get('d')) {
+    const patient = params.get('p');
+    const doctor = params.get('d') || '匿名';
+    const code = params.get('c') || '';
+    document.getElementById('landing-info').innerHTML = `
+      初诊患者：${escHtml(patient)}<br>
+      初诊医师：${escHtml(doctor)}<br>
+      提交时间：${new Date().toLocaleDateString('zh-CN')}
+    `;
+    showPage('page-landing');
+  }
+})();
+</script>
+</body>
+</html>
