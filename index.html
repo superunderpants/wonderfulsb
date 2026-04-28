@@ -1083,7 +1083,7 @@ function generateShareImage() {
   qrContainer.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
   document.body.appendChild(qrContainer);
 
-  const shareUrl = window.location.origin + window.location.pathname +
+  const shareUrl = 'https://superunderpants.github.io/wonderfulsb/' +
     `?p=${encodeURIComponent(STATE.patientName)}&d=${encodeURIComponent(STATE.doctorName)}&c=${STATE.resultCode}`;
 
   new QRCode(qrContainer, {
