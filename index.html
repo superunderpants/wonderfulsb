@@ -626,14 +626,26 @@
       <div class="hospital-icon">🏥</div>
       <div class="title">精神卫生中心</div>
     </div>
-    <div class="landing-card">
+    <div class="landing-card" id="landing-preview">
       <div class="warn-icon">⚠</div>
       <div class="landing-title">您有一份待查看的分诊报告</div>
       <div class="landing-info" id="landing-info"></div>
       <div class="stress-check">
-        <div class="stress-option" onclick="viewLandingReport()">○ 能，让暴风雨来得更猛烈些</div>
-        <div class="stress-option" onclick="viewLandingReport()">○ 不能，但我还是想看</div>
+        <div class="stress-option" onclick="revealLandingReport()">○ 能，让暴风雨来得更猛烈些</div>
+        <div class="stress-option" onclick="revealLandingReport()">○ 不能，但我还是想看</div>
       </div>
+    </div>
+    <div class="landing-card" id="landing-result" style="display:none">
+      <div class="warn-icon">📋</div>
+      <div class="landing-title" id="landing-result-title"></div>
+      <div class="diagnosis-box" style="margin-top:16px">
+        <div class="diag-label">诊 断 结 果</div>
+        <div class="diag-name" id="landing-diagnosis"></div>
+        <div class="icd-code" style="margin-top:10px" id="landing-icd"></div>
+      </div>
+      <div class="landing-info" style="font-size:13px;margin-top:12px" id="landing-verdict"></div>
+      <button class="btn btn-primary mt-20" onclick="startSelfMode()">🔍 测测你自己挂哪个科</button>
+      <button class="btn btn-outline" onclick="startFriendMode()">📋 替朋友挂一个号</button>
     </div>
     <div class="footer">根据精神卫生伦理委员会规定，患者有权查看本人分诊报告</div>
   </div>
@@ -1103,9 +1115,41 @@ function closeShareOverlay(event) {
 }
 
 // ==================== LANDING ====================
-function viewLandingReport() {
-  // For now, redirect to home since we don't have real share URLs yet
-  goHome();
+function revealLandingReport() {
+  const params = new URLSearchParams(window.location.search);
+  const patient = params.get('p') || '未知';
+  const doctor = params.get('d') || '匿名';
+  const code = params.get('c') || 'CLEAN-00';
+  const diagName = DIAGNOSIS_MAP[code] || '暂时正常（疑似伪装）';
+
+  document.getElementById('landing-preview').style.display = 'none';
+  document.getElementById('landing-result').style.display = 'block';
+  document.getElementById('landing-result-title').textContent =
+    `${escHtml(doctor)} 替 ${escHtml(patient)} 挂了一个号`;
+  document.getElementById('landing-diagnosis').textContent = diagName;
+  document.getElementById('landing-icd').textContent = `ICD-11：${code}`;
+
+  // Verdict lines based on diagnosis
+  const verdicts = {
+    'SB-404': '诊断意见：做事不过脑，建议下次动手前先动一动为数不多的脑子。',
+    'IMSB-99': '诊断意见：知道自己的问题但坚决不改，系统对您的坦诚表示赞赏。',
+    'DUMB-01': '诊断意见：智商欠费停机，建议多读书少刷短视频。',
+    'PSYCHO-6': '诊断意见：情绪波动如过山车，建议不要让周围人买保险。',
+    'WTF-404': '诊断意见：系统试图理解您的人生逻辑，系统放弃了。',
+    'TRASH-7': '诊断意见：可回收型人才，建议先把自己整理一下再回收。',
+    'DEAD-13': '诊断意见：肉体还在运转，灵魂已离线。建议充电。',
+    'LMAO-0': '诊断意见：笑得越大声，系统越担心。您还好吗？',
+    'GUN-88': '诊断意见：社交回避已达专业水准，建议转介独处科。',
+    'JOKE-1': '诊断意见：您以为自己演的是主角，系统显示您是气氛组。',
+    'BROKE-24': '诊断意见：月初和月底是两个人，建议选择性遗忘消费记录。',
+    'CRINGE-3': '诊断意见：替别人尴尬的能力已达工伤标准，建议自保。',
+    'LONER-77': '诊断意见：没人想懂您不是您的错，但确实目前也没人想懂您。',
+    'COPEFUL-0': '诊断意见：收藏=已做，计划=已完成。您的精神胜利法学得很到位。',
+    'TROLL-99': '诊断意见：口舌之争永不言败，建议报名辩论赛为国争光。',
+    'CLEAN-00': '诊断意见：各项指标正常得令人生疑，系统建议三个月后复查。',
+  };
+  document.getElementById('landing-verdict').textContent =
+    verdicts[code] || '诊断意见：系统暂时无法给出明确判断，建议当面就诊。';
 }
 
 // ==================== UTIL ====================
@@ -1118,14 +1162,13 @@ function escHtml(s) {
 // Check for landing page query params
 (function checkLanding() {
   const params = new URLSearchParams(window.location.search);
-  if (params.get('p') && params.get('d')) {
+  if (params.get('p')) {
     const patient = params.get('p');
     const doctor = params.get('d') || '匿名';
-    const code = params.get('c') || '';
     document.getElementById('landing-info').innerHTML = `
       初诊患者：${escHtml(patient)}<br>
       初诊医师：${escHtml(doctor)}<br>
-      提交时间：${new Date().toLocaleDateString('zh-CN')}
+      报告状态：<span style="color:#c62828">待患者本人查阅</span>
     `;
     showPage('page-landing');
   }
